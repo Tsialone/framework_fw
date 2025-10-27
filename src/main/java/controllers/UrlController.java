@@ -1,5 +1,6 @@
 package controllers;
 
+import annotations.Controller;
 import annotations.Url;
 
 public class UrlController {
