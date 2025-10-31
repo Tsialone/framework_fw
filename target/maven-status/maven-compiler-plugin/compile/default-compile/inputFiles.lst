@@ -1,3 +1,5 @@
-/media/tsialone/Data/ITU/L3/S5/Mr_Naina/framework/fw/src/main/java/controllers/UrlController.java
-/media/tsialone/Data/ITU/L3/S5/Mr_Naina/framework/fw/src/main/java/annotations/Url.java
+/media/tsialone/Data/ITU/L3/S5/Mr_Naina/framework/fw/src/main/java/utils/ScannerUtil.java
+/media/tsialone/Data/ITU/L3/S5/Mr_Naina/framework/fw/src/main/java/annotations/UrlAnnotation.java
 /media/tsialone/Data/ITU/L3/S5/Mr_Naina/framework/fw/src/main/java/servlets/FrontServlet.java
+/media/tsialone/Data/ITU/L3/S5/Mr_Naina/framework/fw/src/main/java/utils/MapUtil.java
+/media/tsialone/Data/ITU/L3/S5/Mr_Naina/framework/fw/src/main/java/annotations/ControllerAnnotation.java

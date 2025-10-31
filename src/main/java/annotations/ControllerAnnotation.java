@@ -6,7 +6,7 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
-public @interface Url {
-    String value(); // le chemin URL
+@Target({ElementType.TYPE})
+public @interface ControllerAnnotation {
+    String name (); 
 }
