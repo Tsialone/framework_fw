@@ -38,7 +38,7 @@ public class FrontServlet extends HttpServlet {
             try {
                 String packageToScan = config.getInitParameter("packageToScan");
                 // if (packageToScan == null || packageToScan.isEmpty()) {
-                //     packageToScan = "apps";
+                // packageToScan = "apps";
                 // }
                 scannerUtil = new ScannerUtil(packageToScan);
                 System.out.println("📦 Package scanné : " + packageToScan);
@@ -67,12 +67,15 @@ public class FrontServlet extends HttpServlet {
                 resp.getWriter().println("path : " + path);
                 for (MapUtil mapUtil : scannerUtil.getMapUtils()) {
                     if (mapUtil.getUrl().value().equals(path)) {
-
+                        Object controllerInstance = mapUtil.getClasse().getDeclaredConstructor().newInstance();
+                        Object result = mapUtil.getMethode().invoke(controllerInstance);
                         resp.getWriter().println(
                                 "controlleur trouvé: " +
                                         "\nmethode: " + mapUtil.getMethode().getName() +
                                         "\nurl: " + mapUtil.getUrl().value() +
-                                        "\nclasse: " + mapUtil.getClasse().getSimpleName());
+                                        "\nclasse: " + mapUtil.getClasse().getSimpleName() + 
+                                        "\nresult invoke: "  +  result
+                                        );
 
                     }
                 }
