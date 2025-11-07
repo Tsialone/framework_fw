@@ -27,7 +27,7 @@ public class ScannerUtil {
                         UrlAnnotation uri = m.getAnnotation(UrlAnnotation.class);
                         MapUtil mapUtil = new MapUtil();
                         mapUtil.setClasse(controller);
-                        mapUtil.setUrl(uri);
+                        mapUtil.setUrl(uri.value());
                         mapUtil.setMethode(m);
                         mapUtils.add(mapUtil);
                     }

@@ -5,24 +5,24 @@ import java.lang.reflect.Method;
 import annotations.UrlAnnotation;
 
 public class MapUtil {
-    private UrlAnnotation url;
+    private String url;
     private Class<?> classe;
     private Method methode;
 
     public MapUtil() {
     }
 
-    public MapUtil(UrlAnnotation url, Class<?> classe, Method methode) {
+    public MapUtil(String url, Class<?> classe, Method methode) {
         this.url = url;
         this.classe = classe;
         this.methode = methode;
     }
 
-    public UrlAnnotation getUrl() {
+    public String getUrl() {
         return url;
     }
 
-    public void setUrl(UrlAnnotation url) {
+    public void setUrl(String url) {
         this.url = url;
     }
 
