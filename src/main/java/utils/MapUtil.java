@@ -2,7 +2,6 @@ package utils;
 
 import java.lang.reflect.Method;
 
-import annotations.UrlAnnotation;
 
 public class MapUtil {
     private String url;
