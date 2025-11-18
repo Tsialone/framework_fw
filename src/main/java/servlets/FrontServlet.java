@@ -60,6 +60,8 @@ public class FrontServlet extends HttpServlet {
                         Object result = mapUtil.getMethode().invoke(controllerInstance);
                         if (result.getClass().equals(ModelView.class)) {
                             ModelView modelView = (ModelView) result;
+                            
+                            req.setAttribute("modelView", modelView);
                             req.getRequestDispatcher("/WEB-INF/" + modelView.getView()).forward(req, resp);
                         } else if (result.getClass().equals(String.class)) {
                             resp.getWriter().println(
