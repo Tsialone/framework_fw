@@ -1,7 +1,9 @@
 package servlets;
 
 import java.io.IOException;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import jakarta.servlet.RequestDispatcher;
@@ -59,21 +61,23 @@ public class FrontServlet extends HttpServlet {
                 for (MapUtil mapUtil : scannerUtil.getMapUtils()) {
                     // String newPath = path;
                     List<String> possiblePath = new ArrayList<>();
+                    String regex = "\\/";
                     possiblePath.add(path);
 
                     // raha ? ilay split
                     if (path.contains("\\?")) {
                         List<String> baraingos = SplitUtil.splitByStr(path, "\\?");
                         if (baraingos.size() > 1) {
-                            possiblePath.add(baraingos.getFirst());
+                            possiblePath.add("/" + baraingos.getFirst());
                         }
+                        regex = "\\?";
                     }
                     // raha / ilay split
                     else {
                         List<String> slash = SplitUtil.splitByStr(path, "/");
                         System.out.println("taille an'ilay slash: " + slash.size());
                         if (slash.size() > 1) {
-                            possiblePath.add( "/"+ slash.getFirst());
+                            possiblePath.add("/" + slash.getFirst());
                         }
                     }
 
@@ -82,10 +86,56 @@ public class FrontServlet extends HttpServlet {
                     System.out.println("path: " + path);
 
                     // if (mapUtil.getUrl().equals(path)) {
-                    if (possiblePath.contains(mapUtil.getUrl())) {
+                    // String controllerUrl = mapUtil.getUrl();
+                    String pathBase = "";
+                    List<String> controllerUrlSplited = SplitUtil.splitByStr(path, "/");
+
+                    if (!controllerUrlSplited.isEmpty())
+                        pathBase = "/" + controllerUrlSplited.getFirst();
+                    List<Object> arguments = new ArrayList<>();
+                    // List<HashMap<String, Object>> keyValue = SplitUtil.
+                    // getKeyValueByParamUrl(splited2.get(1));
+
+                    System.out.println("Controller base url est: " + mapUtil.getUrl());
+                    boolean urlFound = possiblePath.contains(mapUtil.getUrl());
+                    System.out.println("contains: " +  possiblePath.contains(mapUtil.getUrl()) ) ;
+                    // if (possiblePath.contains(controllerUrl)) {
+                    //     System.out.println("regex equals: " + regex.equals("\\/") );
+                    //     if (regex.equals("\\/")) {
+                    //         List<String> uriSplited = SplitUtil.splitByStr(path, "/");
+                    //         List<String> urlControllerSplited = SplitUtil.splitByStr(mapUtil.getUrl(), "/");
+                    //         if (uriSplited.size() == urlControllerSplited.size()) {
+                    //             urlFound = true;
+                    //             System.out.println("Mitovy:  " + path + " vs " + mapUtil.getUrl());
+
+                    //         } else {
+                    //             System.out.println("Tsy mitovy:  " + path + " vs " + mapUtil.getUrl());
+                    //         }
+                    //     }
+
+                    // }
+
+                    if (urlFound) {
+                        // HashMap<String, Object> keyValues = SplitUtil.initKey(path, mapUtil.getUrl(), regex);
+                        // System.out.println("key value est: " + keyValues);
+                        System.out.println("Controller  url est: " + mapUtil.getUrl());
+                        System.out.println("uri est: " + path);
+
+                        System.out.println("regex est: " + regex);
+
+                        // arguments.add(1);
                         classeFound = true;
                         Object controllerInstance = mapUtil.getClasse().getDeclaredConstructor().newInstance();
-                        Object result = mapUtil.getMethode().invoke(controllerInstance);
+                        // Object [] argumentsObject = null;
+                        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+                        // if (!arguments.isEmpty()) argumentsObject = arguments.toArray(new Object[0])
+                        // ;
+                        List<Parameter> parameters = SplitUtil.getParameterByMethod(mapUtil.getMethode());
+                        System.out.println("ses parametres: \n" );
+                        for (Parameter object : parameters) {
+                            
+                        }
+                        Object result = mapUtil.getMethode().invoke(controllerInstance, argumentsArray);
                         if (result.getClass().equals(ModelView.class)) {
                             ModelView modelView = (ModelView) result;
 
@@ -101,6 +151,7 @@ public class FrontServlet extends HttpServlet {
 
                         }
                     }
+                    break;
                 }
 
             }
