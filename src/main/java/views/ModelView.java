@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class ModelView {
     private String view;
-    private List<Map<String, Object>> datas = new ArrayList<>();
+    private HashMap<String, Object> data  = new HashMap<>();
 
     public ModelView(String view) {
         this.view = view;
@@ -17,33 +17,29 @@ public class ModelView {
     }
 
     public void putData(String key, Object object) {
-        HashMap<String, Object> tempMap = new HashMap<>();
-        tempMap.put(key, object);
-        datas.add(tempMap);
+        data.put(key, object);
     }
 
     public Object getDataByKey(String key) {
-        for (Map<String, Object> map : datas) {
-            if (map.containsKey(key)) {
-                return map.get(key);
-            }
+        if (data.containsKey(key)) {
+            return data.get(key);
         }
         return null;
     }
 
-    public void setData(List<Map<String, Object>> datas) {
-        this.datas = datas;
+    public void setData(HashMap<String, Object> data) {
+        this.data = data;
     }
 
-    public List<Map<String, Object>> getData() {
-        return datas;
+    public Map<String, Object> getData() {
+        return data;
     }
 
-    public void addData(Map<String, Object> data) {
-        if (data != null) {
-            datas.add(data);
-        }
-    }
+    // public void addData(Map<String, Object> data) {
+    //     if (data != null) {
+    //         datas.add(data);
+    //     }
+    // }
 
     public String getView() {
         return view;

@@ -1,11 +1,40 @@
 package utils;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 public class SplitUtil {
+
+    public static HashMap<String, Object> initKey(String uri, String controllerUrl, String regex) {
+        List<String> sp1 = splitByStr(uri, regex);
+        List<String> sp2 = splitByStr(controllerUrl, regex);
+        if (regex.equals("\\/") && sp1.size() != sp2.size())
+            return null;
+        if (sp1.size() > 1)
+            sp1.remove(0);
+        sp2.remove(0);
+        System.out.println("sp1: " + sp1);
+        System.out.println("sp2: " + sp2);
+        HashMap<String, Object> resp = new HashMap<>();
+
+        if (regex.equals("\\/")) {
+            for (int i = 0; i < sp1.size(); i++) {
+                String newKey = sp2.get(i).replace("}", "").replace("{", "");
+                resp.put(newKey, sp1.get(i));
+            }
+        } else if (regex.equals("\\?")) {
+            return getKeyValueByParamUrl(sp1.getFirst());
+        }
+
+        return resp;
+    }
+
     public static List<String> splitByStr(String path, String str) {
         List<String> resp = new ArrayList<>();
         String[] splited = path.split(str);
@@ -19,19 +48,20 @@ public class SplitUtil {
     }
 
     // doit etre de la forme: key=1
-    public static HashMap<String, Object> getKeyValueByParam(String str) {
+    public static KeyValueUtil getKeyValueByParam(String str) {
         List<String> splited = splitByStr(str, "\\=");
         if (splited.size() == 2) {
             HashMap<String, Object> hashMap = new HashMap<>();
             hashMap.put(splited.get(0), splited.get(1));
-            return hashMap;
+            KeyValueUtil keyValueUtil = new KeyValueUtil(splited.get(0), splited.get(1));
+            return keyValueUtil;
         }
         return null;
     }
 
-    public static List<String> getPossiblePath (String path){
+    public static List<String> getPossiblePath(String path) {
         List<String> splited = splitByStr(path, "/");
-        List<String>resp = new ArrayList<>();
+        List<String> resp = new ArrayList<>();
         if (splited.size() > 1) {
             resp.add(splited.getFirst());
         }
@@ -39,13 +69,47 @@ public class SplitUtil {
         return resp;
     }
 
-    public static List<HashMap<String, Object>> getKeyValueByParamUrl(String param) {
-        List<HashMap<String, Object>> resp = new ArrayList<>();
+    public static HashMap<String, Object> getKeyValueByParamUrl(String param) {
+        HashMap<String, Object> resp = new HashMap<>();
 
         List<String> splited = splitByStr(param, "\\&");
         for (String string : splited) {
-            resp.add(getKeyValueByParam(string));
+            KeyValueUtil keyValueUtil = getKeyValueByParam(string);
+            resp.put(keyValueUtil.getKey(), keyValueUtil.getValue());
         }
         return resp;
+    }
+
+    public static List<Parameter> getParameterByMethod(Method method) {
+        Parameter[] parameters = method.getParameters();
+        return Arrays.asList(parameters);
+    }
+    //   public  static List<Object> mapRequestParametersToArguments(HttpServletRequest req, Method method) {
+    //     List<Object> arguments = new ArrayList<>();
+    //     Parameter[] parameters = method.getParameters(); // Assurez-vous que les noms sont disponibles (-parameters flag)
+
+    //     for (Parameter param : parameters) {
+    //         String paramName = param.getName();
+    //         String paramValueString = req.getParameter(paramName);
+    //         Class<?> paramType = param.getType();
+
+    //         // Convertit la chaîne de caractères dans le type approprié
+    //         Object convertedValue = convertStringToObject(paramValueString, paramType);
+    //         arguments.add(convertedValue);
+    //     }
+        
+    //     return arguments;
+    // }
+
+    public static Object parse  (Object object) {
+        try {
+            return Integer.parseInt(object.toString());
+        } catch (Exception e) {
+            try {
+                return  Double.parseDouble(object.toString());
+            } catch (Exception e2) {
+                return object;
+            }
+        }
     }
 }
