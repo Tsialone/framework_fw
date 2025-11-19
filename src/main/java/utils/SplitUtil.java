@@ -25,6 +25,8 @@ public class SplitUtil {
 
         if (regex.equals("\\/")) {
             for (int i = 0; i < sp1.size(); i++) {
+                if (!sp2.get(i).contains("}") || !sp2.get(i).contains("{"))
+                    continue;
                 String newKey = sp2.get(i).replace("}", "").replace("{", "");
                 resp.put(newKey, sp1.get(i));
             }
@@ -84,29 +86,31 @@ public class SplitUtil {
         Parameter[] parameters = method.getParameters();
         return Arrays.asList(parameters);
     }
-    //   public  static List<Object> mapRequestParametersToArguments(HttpServletRequest req, Method method) {
-    //     List<Object> arguments = new ArrayList<>();
-    //     Parameter[] parameters = method.getParameters(); // Assurez-vous que les noms sont disponibles (-parameters flag)
+    // public static List<Object> mapRequestParametersToArguments(HttpServletRequest
+    // req, Method method) {
+    // List<Object> arguments = new ArrayList<>();
+    // Parameter[] parameters = method.getParameters(); // Assurez-vous que les noms
+    // sont disponibles (-parameters flag)
 
-    //     for (Parameter param : parameters) {
-    //         String paramName = param.getName();
-    //         String paramValueString = req.getParameter(paramName);
-    //         Class<?> paramType = param.getType();
+    // for (Parameter param : parameters) {
+    // String paramName = param.getName();
+    // String paramValueString = req.getParameter(paramName);
+    // Class<?> paramType = param.getType();
 
-    //         // Convertit la chaîne de caractères dans le type approprié
-    //         Object convertedValue = convertStringToObject(paramValueString, paramType);
-    //         arguments.add(convertedValue);
-    //     }
-        
-    //     return arguments;
+    // // Convertit la chaîne de caractères dans le type approprié
+    // Object convertedValue = convertStringToObject(paramValueString, paramType);
+    // arguments.add(convertedValue);
     // }
 
-    public static Object parse  (Object object) {
+    // return arguments;
+    // }
+
+    public static Object parse(Object object) {
         try {
             return Integer.parseInt(object.toString());
         } catch (Exception e) {
             try {
-                return  Double.parseDouble(object.toString());
+                return Double.parseDouble(object.toString());
             } catch (Exception e2) {
                 return object;
             }
