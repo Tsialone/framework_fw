@@ -146,10 +146,10 @@ public class FrontServlet extends HttpServlet {
 
                         for (Parameter param : parameters) {
                             String toFind = param.getName();
-                            // RequestParam rp = param.getAnnotation(RequestParam.class);
-                            // if (rp != null && !rp.name().isEmpty()) {
-                            // toFind = rp.name();
-                            // }
+                            RequestParam rp = param.getAnnotation(RequestParam.class);
+                            if (rp != null && !rp.name().isEmpty()) {
+                                toFind = rp.name();
+                            }
                             Object requestOb = req.getParameter(toFind);
                             Object ob = conversionService.convert(requestOb, param.getType());
                             arguments.add(ob);
