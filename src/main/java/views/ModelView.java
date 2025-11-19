@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class ModelView {
     private String view;
-    private Map<String, Object> data;
+    private HashMap<String, Object> data  = new HashMap<>();
 
     public ModelView(String view) {
         this.view = view;
@@ -27,7 +27,7 @@ public class ModelView {
         return null;
     }
 
-    public void setData(Map<String, Object> data) {
+    public void setData(HashMap<String, Object> data) {
         this.data = data;
     }
 

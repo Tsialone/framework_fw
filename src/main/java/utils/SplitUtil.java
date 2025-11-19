@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 public class SplitUtil {
 
     public static HashMap<String, Object> initKey(String uri, String controllerUrl, String regex) {
@@ -81,5 +83,33 @@ public class SplitUtil {
     public static List<Parameter> getParameterByMethod(Method method) {
         Parameter[] parameters = method.getParameters();
         return Arrays.asList(parameters);
+    }
+    //   public  static List<Object> mapRequestParametersToArguments(HttpServletRequest req, Method method) {
+    //     List<Object> arguments = new ArrayList<>();
+    //     Parameter[] parameters = method.getParameters(); // Assurez-vous que les noms sont disponibles (-parameters flag)
+
+    //     for (Parameter param : parameters) {
+    //         String paramName = param.getName();
+    //         String paramValueString = req.getParameter(paramName);
+    //         Class<?> paramType = param.getType();
+
+    //         // Convertit la chaîne de caractères dans le type approprié
+    //         Object convertedValue = convertStringToObject(paramValueString, paramType);
+    //         arguments.add(convertedValue);
+    //     }
+        
+    //     return arguments;
+    // }
+
+    public static Object parse  (Object object) {
+        try {
+            return Integer.parseInt(object.toString());
+        } catch (Exception e) {
+            try {
+                return  Double.parseDouble(object.toString());
+            } catch (Exception e2) {
+                return object;
+            }
+        }
     }
 }
