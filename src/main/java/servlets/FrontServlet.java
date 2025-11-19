@@ -67,7 +67,7 @@ public class FrontServlet extends HttpServlet {
                 for (MapUtil mapUtil : scannerUtil.getMapUtils()) {
                     // String newPath = path;
                     List<String> possiblePath = new ArrayList<>();
-                    String regex = "\\/";
+                    String regex = null;
                     possiblePath.add(path);
 
                     // raha ? ilay split
@@ -75,8 +75,8 @@ public class FrontServlet extends HttpServlet {
                         List<String> baraingos = SplitUtil.splitByStr(path, "\\?");
                         if (baraingos.size() > 1) {
                             possiblePath.add("/" + baraingos.getFirst());
+                            regex = "\\?";
                         }
-                        regex = "\\?";
                     }
                     // raha / ilay split
                     else {
@@ -84,7 +84,9 @@ public class FrontServlet extends HttpServlet {
                         System.out.println("taille an'ilay slash: " + slash.size());
                         if (slash.size() > 1) {
                             possiblePath.add("/" + slash.getFirst());
+                            regex = "\\/";
                         }
+
                     }
 
                     System.out.println("possible path: ");
@@ -102,25 +104,29 @@ public class FrontServlet extends HttpServlet {
                     // List<HashMap<String, Object>> keyValue = SplitUtil.
                     // getKeyValueByParamUrl(splited2.get(1));
 
-                    System.out.println("Controller base url est: " + mapUtil.getUrl());
+                    // System.out.println("Controller base url est: " + mapUtil.getUrl());
                     boolean urlFound = possiblePath.contains(mapUtil.getUrl());
+                    System.out.println("controller urlllll: " + mapUtil.getUrl());
                     System.out.println("contains: " + possiblePath.contains(mapUtil.getUrl()));
-                    // if (possiblePath.contains(controllerUrl)) {
-                    // System.out.println("regex equals: " + regex.equals("\\/") );
-                    // if (regex.equals("\\/")) {
-                    // List<String> uriSplited = SplitUtil.splitByStr(path, "/");
-                    // List<String> urlControllerSplited = SplitUtil.splitByStr(mapUtil.getUrl(),
-                    // "/");
-                    // if (uriSplited.size() == urlControllerSplited.size()) {
-                    // urlFound = true;
-                    // System.out.println("Mitovy: " + path + " vs " + mapUtil.getUrl());
+                    System.out.println("path base: " + pathBase);
 
-                    // } else {
-                    // System.out.println("Tsy mitovy: " + path + " vs " + mapUtil.getUrl());
-                    // }
-                    // }
+                    if (possiblePath.contains(pathBase) && regex != null && regex.equals("\\/")) {
+                        // System.out.println("regex equals: " + regex.equals("\\/") );
+                        System.out.println("----regex equals----");
+                        List<String> uriSplited = SplitUtil.splitByStr(path, "/");
+                        List<String> urlControllerSplited = SplitUtil.splitByStr(mapUtil.getUrl(), "/");
+                        if (uriSplited.size() == urlControllerSplited.size()) {
+                            String tempBase = "/" + urlControllerSplited.getFirst();
+                            if (tempBase.equals(pathBase))  urlFound = true;
+                           
+                            System.out.println("manondrana");
+                        }
+                        else {
+                            urlFound = false;
+                        }
 
-                    // }
+                    }
+                    System.out.println("url found: " + urlFound);
 
                     if (urlFound) {
                         // HashMap<String, Object> keyValues = SplitUtil.initKey(path, mapUtil.getUrl(),
@@ -144,6 +150,7 @@ public class FrontServlet extends HttpServlet {
                         registrar.setUseIsoFormat(true);
                         registrar.registerFormatters(conversionService);
 
+                        // ? methode
                         for (Parameter param : parameters) {
                             String toFind = param.getName();
                             RequestParam rp = param.getAnnotation(RequestParam.class);
@@ -151,6 +158,11 @@ public class FrontServlet extends HttpServlet {
                                 toFind = rp.name();
                             }
                             Object requestOb = req.getParameter(toFind);
+                            if (regex != null && regex.equals("\\/")) {
+                                HashMap<String, Object> pathParamMap = SplitUtil.initKey(path, mapUtil.getUrl(), "\\/");
+                                System.out.println("pathParamMap: " + pathParamMap);
+                                requestOb = pathParamMap.get(toFind);
+                            }
                             Object ob = conversionService.convert(requestOb, param.getType());
                             arguments.add(ob);
                             System.out.println(toFind);
@@ -171,6 +183,7 @@ public class FrontServlet extends HttpServlet {
                                             "\nresult invoke: " + result);
 
                         }
+                        // break;
                     }
                 }
 
@@ -182,6 +195,7 @@ public class FrontServlet extends HttpServlet {
                 // req.getRequestURI());
             }
         } catch (Exception e) {
+            resp.getWriter().println(e.getCause().getMessage());
             e.getCause().printStackTrace();
             // e.printStackTrace();
             // throw e;
