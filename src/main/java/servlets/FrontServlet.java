@@ -26,6 +26,7 @@ import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 
 public class FrontServlet extends HttpServlet {
     private ScannerUtil scannerUtil;
+    private DefaultFormattingConversionService conversionService;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -33,10 +34,10 @@ public class FrontServlet extends HttpServlet {
         try {
             try {
                 String packageToScan = config.getInitParameter("packageToScan");
-                // if (packageToScan == null || packageToScan.isEmpty()) {
-                // packageToScan = "apps";
-                // }
-                // servlet context
+                conversionService = new DefaultFormattingConversionService();
+                DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+                registrar.setUseIsoFormat(true);
+                registrar.registerFormatters(conversionService);
                 scannerUtil = new ScannerUtil(packageToScan);
                 System.out.println("Package scanné : " + packageToScan);
             } catch (Exception e) {
@@ -51,106 +52,86 @@ public class FrontServlet extends HttpServlet {
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
         String path = req.getServletPath();
         ServletContext servletContext = req.getServletContext();
         RequestDispatcher requestDispatcher = servletContext.getNamedDispatcher("default");
+
         try {
             boolean ressourceExist = servletContext.getResource(path) != null;
             boolean classeFound = false;
             if (ressourceExist) {
                 requestDispatcher.forward(req, resp);
                 return;
-            } else if (scannerUtil.getMapUtils().size() > 0) {
+            } else {
                 resp.setContentType("text/plain");
-                resp.getWriter().println("Les contenus de controllerFound :");
-                resp.getWriter().println("path : " + path);
-                for (MapUtil mapUtil : scannerUtil.getMapUtils()) {
-                    // String newPath = path;
-                    List<String> possiblePath = new ArrayList<>();
-                    String regex = null;
-                    possiblePath.add(path);
 
-                    // raha ? ilay split
-                    if (path.contains("\\?")) {
-                        List<String> baraingos = SplitUtil.splitByStr(path, "\\?");
-                        if (baraingos.size() > 1) {
-                            possiblePath.add("/" + baraingos.getFirst());
-                            regex = "\\?";
-                        }
+                HashMap<String, List<MapUtil>> controllerMapped = scannerUtil.getMapHash();
+                List<String> possiblePath = new ArrayList<>();
+                String regex = null;
+                possiblePath.add(path);
+
+                // raha ? ilay split
+                if (path.contains("\\?")) {
+                    List<String> baraingos = SplitUtil.splitByStr(path, "\\?");
+                    if (baraingos.size() > 1) {
+                        possiblePath.add("/" + baraingos.getFirst());
+                        regex = "\\?";
                     }
-                    // raha / ilay split
-                    else {
-                        List<String> slash = SplitUtil.splitByStr(path, "/");
-                        System.out.println("taille an'ilay slash: " + slash.size());
-                        if (slash.size() > 1) {
-                            possiblePath.add("/" + slash.getFirst());
-                            regex = "\\/";
-                        }
-
+                }
+                // raha / ilay split
+                else {
+                    List<String> slash = SplitUtil.splitByStr(path, "/");
+                    System.out.println("taille an'ilay slash: " + slash.size());
+                    if (slash.size() > 1) {
+                        possiblePath.add("/" + slash.getFirst());
+                        regex = "\\/";
                     }
 
-                    System.out.println("possible path: ");
-                    System.out.println(possiblePath);
-                    System.out.println("path: " + path);
+                }
+                List<MapUtil> mapUtils = new ArrayList<>();
+                String pathBase = "";
+                List<String> controllerUrlSplited = SplitUtil.splitByStr(path, "/");
+                if (!controllerUrlSplited.isEmpty())
+                    pathBase = "/" + controllerUrlSplited.getFirst();
 
-                    // if (mapUtil.getUrl().equals(path)) {
-                    // String controllerUrl = mapUtil.getUrl();
-                    String pathBase = "";
-                    List<String> controllerUrlSplited = SplitUtil.splitByStr(path, "/");
+                boolean urlFound = false;
+                boolean methodeMatches = false;
 
-                    if (!controllerUrlSplited.isEmpty())
-                        pathBase = "/" + controllerUrlSplited.getFirst();
-                    List<Object> arguments = new ArrayList<>();
-                    // List<HashMap<String, Object>> keyValue = SplitUtil.
-                    // getKeyValueByParamUrl(splited2.get(1));
-
-                    // System.out.println("Controller base url est: " + mapUtil.getUrl());
-                    boolean urlFound = possiblePath.contains(mapUtil.getUrl());
-                    System.out.println("controller urlllll: " + mapUtil.getUrl());
-                    System.out.println("contains: " + possiblePath.contains(mapUtil.getUrl()));
-                    System.out.println("path base: " + pathBase);
-
-                    if (possiblePath.contains(pathBase) && regex != null && regex.equals("\\/")) {
-                        // System.out.println("regex equals: " + regex.equals("\\/") );
-                        System.out.println("----regex equals----");
-                        List<String> uriSplited = SplitUtil.splitByStr(path, "/");
-                        List<String> urlControllerSplited = SplitUtil.splitByStr(mapUtil.getUrl(), "/");
-                        if (uriSplited.size() == urlControllerSplited.size()) {
-                            String tempBase = "/" + urlControllerSplited.getFirst();
-                            if (tempBase.equals(pathBase))  urlFound = true;
-                           
-                            System.out.println("manondrana");
-                        }
-                        else {
-                            urlFound = false;
-                        }
-
+                for (String registeredUrl : controllerMapped.keySet()) {
+                    if (SplitUtil.urlMatch(registeredUrl, path)) {
+                        System.out.println("Url matched, registeredUrl: " + registeredUrl);
+                        mapUtils = controllerMapped.get(registeredUrl);
+                        System.out.println(mapUtils);
+                        break;
                     }
-                    System.out.println("url found: " + urlFound);
+                }
+                // for (String paf : possiblePath) {
+                // if (paf.equals(pathBase)) {
+                // mapUtils = controllerMapped.get(paf);
+                // break;
+                // } else {
+                // System.out.println("tsy mitovy: " + paf + " vs " + pathBase);
+                // }
+                // }
 
-                    if (urlFound) {
-                        // HashMap<String, Object> keyValues = SplitUtil.initKey(path, mapUtil.getUrl(),
-                        // regex);
-                        // System.out.println("key value est: " + keyValues);
-                        System.out.println("Controller  url est: " + mapUtil.getUrl());
-                        System.out.println("uri est: " + path);
-                        System.out.println("regex est: " + regex);
+                String servletMethode = req.getMethod();
+                if (!mapUtils.isEmpty()) {
+                    // MapUtil classe = null;
+                    System.out.println("MIsy ilay mapUtils");
+                    for (MapUtil mapUtil : mapUtils) {
+                        List<Object> arguments = new ArrayList<>();
+                        if (!mapUtil.getHttpMethode().equals("ALL")
+                                && !servletMethode.equals(mapUtil.getHttpMethode())) {
+                            System.out
+                                    .println("why not matching? " + servletMethode + " vs " + mapUtil.getHttpMethode());
+                            continue;
 
-                        // arguments.add(1);
-                        classeFound = true;
+                        } else {
+                            methodeMatches = true;
+                        }
                         Object controllerInstance = mapUtil.getClasse().getDeclaredConstructor().newInstance();
-                        // Object [] argumentsObject = null;
-                        // if (!arguments.isEmpty()) argumentsObject = arguments.toArray(new Object[0])
-                        // ;
                         List<Parameter> parameters = SplitUtil.getParameterByMethod(mapUtil.getMethode());
-                        System.out.println("ses parametres: ");
-
-                        DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
-                        DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
-                        registrar.setUseIsoFormat(true);
-                        registrar.registerFormatters(conversionService);
-
-                        // ? methode
                         for (Parameter param : parameters) {
                             String toFind = param.getName();
                             RequestParam rp = param.getAnnotation(RequestParam.class);
@@ -161,39 +142,44 @@ public class FrontServlet extends HttpServlet {
                             if (regex != null && regex.equals("\\/")) {
                                 HashMap<String, Object> pathParamMap = SplitUtil.initKey(path, mapUtil.getUrl(), "\\/");
                                 System.out.println("pathParamMap: " + pathParamMap);
-                                requestOb = pathParamMap.get(toFind);
+                                if (requestOb == null)
+                                    requestOb = pathParamMap.get(toFind);
                             }
                             Object ob = conversionService.convert(requestOb, param.getType());
                             arguments.add(ob);
-                            System.out.println(toFind);
+                            System.out.println("param: " + toFind);
                         }
                         Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
                         Object result = mapUtil.getMethode().invoke(controllerInstance, argumentsArray);
-                        if (classeFound && result.getClass().equals(ModelView.class)) {
-                            ModelView modelView = (ModelView) result;
 
+                        if (result.getClass().equals(ModelView.class)) {
+                            ModelView modelView = (ModelView) result;
                             req.setAttribute("modelView", modelView);
                             req.getRequestDispatcher("/WEB-INF/" + modelView.getView()).forward(req, resp);
-                        } else if (classeFound && result.getClass().equals(String.class)) {
+                        } else if (result.getClass().equals(String.class)) {
+                            System.out.println("String ilay retour eeee!");
                             resp.getWriter().println(
                                     "controlleur trouvé: " +
                                             "\nmethode: " + mapUtil.getMethode().getName() +
                                             "\nurl: " + mapUtil.getUrl() +
                                             "\nclasse: " + mapUtil.getClasse().getSimpleName() +
+                                            "\nhttMethode: " + mapUtil.getHttpMethode() +
                                             "\nresult invoke: " + result);
-
                         }
-                        // break;
                     }
+                    if (!methodeMatches) {
+                        resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                                "Méthode non autorisée : " + req.getMethod());
+                    }
+                } else {
+                    System.out.println("Tsy hita lty ilay url aaaaaa");
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND, "URL non trouvée : " + req.getRequestURI());
+                    // resp.setContentType("text/plain");
+                    // resp.getWriter().println("404 error page not found, x URL est: " +
+                    // req.getRequestURI());
                 }
+            }
 
-            }
-            if (!classeFound) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "URL non trouvée : " + req.getRequestURI());
-                // resp.setContentType("text/plain");
-                // resp.getWriter().println("404 error page not found, x URL est: " +
-                // req.getRequestURI());
-            }
         } catch (Exception e) {
             resp.getWriter().println(e.getCause().getMessage());
             e.getCause().printStackTrace();
