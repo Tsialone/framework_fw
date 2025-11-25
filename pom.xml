@@ -41,6 +41,8 @@
     </dependencies>
 
     <build>
+        <finalName>fw-bald-coconut</finalName>
+
         <plugins>
             <!-- Plugin pour compiler en Java 21 -->
             <plugin>

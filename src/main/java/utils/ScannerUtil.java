@@ -2,17 +2,29 @@ package utils;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import annotations.ControllerAnnotation;
 import annotations.UrlAnnotation;
 
 public class ScannerUtil {
     List<MapUtil> mapUtils = new ArrayList<>();
+    HashMap<String, List<MapUtil>> mapHash = new HashMap<>();
     String classPath;
+
+    public HashMap<String, List<MapUtil>> getMapHash() {
+        return mapHash;
+    }
+
+    public void setMapHash(HashMap<String, List<MapUtil>> mapHash) {
+        this.mapHash = mapHash;
+    }
 
     public ScannerUtil(String classPath) throws Exception {
         setClassPath(classPath);
@@ -20,18 +32,71 @@ public class ScannerUtil {
         List<Class<?>> classes = getClasses(classPath);
         System.out.println("Nombre de classes trouvées dans : " + classPath + classes.size());
 
+        // for (Class<?> controller : classes) {
+        // if (controller.isAnnotationPresent(ControllerAnnotation.class)) {
+        // for (Method m : controller.getDeclaredMethods()) {
+        // if (m.isAnnotationPresent(UrlAnnotation.class)) {
+        // UrlAnnotation uri = m.getAnnotation(UrlAnnotation.class);
+        // MapUtil mapUtil = new MapUtil();
+        // mapUtil.setClasse(controller);
+        // mapUtil.setUrl(uri.value());
+        // mapUtil.setMethode(m);
+        // mapUtils.add(mapUtil);
+        // }
+        // }
+        // }
+        // }
+
         for (Class<?> controller : classes) {
             if (controller.isAnnotationPresent(ControllerAnnotation.class)) {
-                for (Method m : controller.getDeclaredMethods()) {
-                    if (m.isAnnotationPresent(UrlAnnotation.class)) {
-                        UrlAnnotation uri = m.getAnnotation(UrlAnnotation.class);
-                        MapUtil mapUtil = new MapUtil();
-                        mapUtil.setClasse(controller);
-                        mapUtil.setUrl(uri.value());
-                        mapUtil.setMethode(m);
-                        mapUtils.add(mapUtil);
+                Method[] hisMethods = controller.getDeclaredMethods();
+                List<String> urlVerified = new ArrayList<>();
+                for (int i = 0; i < hisMethods.length; i++) {
+                    List<MapUtil> temp = new ArrayList<>();
+                    Method methodI = hisMethods[i];
+                    if (!methodI.isAnnotationPresent(UrlAnnotation.class))
+                        continue;
+                    UrlAnnotation uriI = methodI.getAnnotation(UrlAnnotation.class);
+                    if (urlVerified.contains(uriI.value()))
+                        continue;
+
+                    MapUtil mapUtilI = new MapUtil();
+                    mapUtilI.setClasse(controller);
+                    mapUtilI.setUrl(uriI.value());
+                    mapUtilI.setMethode(methodI);
+                    temp.add(mapUtilI);
+                    urlVerified.add(uriI.value());
+                    for (int j = i + 1; j < hisMethods.length - 1; j++) {
+                        Method methodJ = hisMethods[j];
+                        if (!methodJ.isAnnotationPresent(UrlAnnotation.class))
+                            continue;
+                        UrlAnnotation uriJ = methodJ.getAnnotation(UrlAnnotation.class);
+                     
+
+                        MapUtil mapUtilJ = new MapUtil();
+                        mapUtilJ.setClasse(controller);
+                        mapUtilJ.setUrl(uriJ.value());
+                        mapUtilJ.setMethode(methodJ);
+
+                        if (uriJ.value().equals(uriI.value())) {
+                            System.out.println("mitovy eee: " + uriJ.value() + " --- " + uriI.value());
+                            temp.add(mapUtilJ);
+                        }
                     }
+                    System.out.println("puted:" + uriI.value() + " temp_size: " + temp.size());
+                    this.mapHash.put(uriI.value(), temp);
                 }
+                // for (Method m : controller.getDeclaredMethods()) {
+
+                // if (m.isAnnotationPresent(UrlAnnotation.class)) {
+                // UrlAnnotation uri = m.getAnnotation(UrlAnnotation.class);
+                // MapUtil mapUtil = new MapUtil();
+                // mapUtil.setClasse(controller);
+                // mapUtil.setUrl(uri.value());
+                // mapUtil.setMethode(m);
+                // mapUtils.add(mapUtil);
+                // }
+                // }
             }
         }
 

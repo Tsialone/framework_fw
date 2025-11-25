@@ -7,9 +7,27 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 public class SplitUtil {
+    public static boolean urlMatch(String pattern, String path) {
+        List<String> patParts = SplitUtil.splitByStr(pattern, "/");
+        List<String> pathParts = SplitUtil.splitByStr(path, "/");
+
+        if (patParts.size() != pathParts.size())
+            return false;
+
+        for (int i = 0; i < patParts.size(); i++) {
+            String p = patParts.get(i);
+
+            if (p.startsWith("{") && p.endsWith("}")) {
+                continue;
+            }
+
+            if (!p.equals(pathParts.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static HashMap<String, Object> initKey(String uri, String controllerUrl, String regex) {
         List<String> sp1 = splitByStr(uri, regex);
