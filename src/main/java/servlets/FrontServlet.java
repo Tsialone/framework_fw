@@ -5,6 +5,7 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import annotations.RequestParam;
 import jakarta.servlet.RequestDispatcher;
@@ -14,6 +15,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.KeyValueUtil;
 import utils.MapUtil;
 import utils.ScannerUtil;
 import utils.SplitUtil;
@@ -56,7 +58,6 @@ public class FrontServlet extends HttpServlet {
         String path = req.getServletPath();
         ServletContext servletContext = req.getServletContext();
         RequestDispatcher requestDispatcher = servletContext.getNamedDispatcher("default");
-
         try {
             boolean ressourceExist = servletContext.getResource(path) != null;
             boolean classeFound = false;
@@ -132,7 +133,13 @@ public class FrontServlet extends HttpServlet {
                         }
                         Object controllerInstance = mapUtil.getClasse().getDeclaredConstructor().newInstance();
                         List<Parameter> parameters = SplitUtil.getParameterByMethod(mapUtil.getMethode());
+                        HashMap<String, Object> mapAtt = KeyValueUtil.getMapByRequest(req);
+
                         for (Parameter param : parameters) {
+                            if (Map.class.isAssignableFrom(param.getType())) {
+                                arguments.add(mapAtt);
+                                continue;
+                            }
                             String toFind = param.getName();
                             RequestParam rp = param.getAnnotation(RequestParam.class);
                             if (rp != null && !rp.name().isEmpty()) {
@@ -151,6 +158,8 @@ public class FrontServlet extends HttpServlet {
                         }
                         Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
                         Object result = mapUtil.getMethode().invoke(controllerInstance, argumentsArray);
+
+                        System.out.println("-----------On va voir les clée et valeurs----------");
 
                         if (result.getClass().equals(ModelView.class)) {
                             ModelView modelView = (ModelView) result;
