@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
@@ -12,9 +13,12 @@ import java.util.Map;
 
 import annotations.ControllerAnnotation;
 import annotations.UrlAnnotation;
+import annotations.UrlGetAnnotation;
+import annotations.UrlPostAnnotation;
 
 public class ScannerUtil {
     List<MapUtil> mapUtils = new ArrayList<>();
+
     HashMap<String, List<MapUtil>> mapHash = new HashMap<>();
     String classPath;
 
@@ -54,37 +58,60 @@ public class ScannerUtil {
                 for (int i = 0; i < hisMethods.length; i++) {
                     List<MapUtil> temp = new ArrayList<>();
                     Method methodI = hisMethods[i];
-                    if (!methodI.isAnnotationPresent(UrlAnnotation.class))
+                    String urlValueI = null;
+                    Annotation[] hisAnnotations = methodI.getAnnotations();
+                    for (Annotation annotation : hisAnnotations) {
+
+                        if (annotation instanceof UrlAnnotation u) {
+                            urlValueI = u.value();
+                        } else if (annotation instanceof UrlGetAnnotation get) {
+                            urlValueI = get.value();
+                        } else if (annotation instanceof UrlPostAnnotation post) {
+                            urlValueI = post.value();
+                        }
+                    }
+                    if (urlValueI == null)
                         continue;
-                    UrlAnnotation uriI = methodI.getAnnotation(UrlAnnotation.class);
-                    if (urlVerified.contains(uriI.value()))
+                    if (urlVerified.contains(urlValueI))
                         continue;
 
                     MapUtil mapUtilI = new MapUtil();
                     mapUtilI.setClasse(controller);
-                    mapUtilI.setUrl(uriI.value());
+                    mapUtilI.setUrl(urlValueI);
                     mapUtilI.setMethode(methodI);
                     temp.add(mapUtilI);
-                    urlVerified.add(uriI.value());
+                    urlVerified.add(urlValueI);
                     for (int j = i + 1; j < hisMethods.length - 1; j++) {
                         Method methodJ = hisMethods[j];
-                        if (!methodJ.isAnnotationPresent(UrlAnnotation.class))
+                        Annotation[] hisAnnotationsJ = methodJ.getAnnotations();
+                        String urlValueJ = null;
+                        for (Annotation annotation : hisAnnotationsJ) {
+                            if (annotation instanceof UrlAnnotation u) {
+                                urlValueJ = u.value();
+                            } else if (annotation instanceof UrlGetAnnotation get) {
+                                urlValueJ = get.value();
+                            } else if (annotation instanceof UrlPostAnnotation post) {
+                                urlValueJ = post.value();
+                            }
+                        }
+
+                        // if (!methodJ.isAnnotationPresent(UrlAnnotation.class))
+                        // continue;
+                        if (urlValueJ == null)
                             continue;
-                        UrlAnnotation uriJ = methodJ.getAnnotation(UrlAnnotation.class);
-                     
 
                         MapUtil mapUtilJ = new MapUtil();
                         mapUtilJ.setClasse(controller);
-                        mapUtilJ.setUrl(uriJ.value());
+                        mapUtilJ.setUrl(urlValueJ);
                         mapUtilJ.setMethode(methodJ);
 
-                        if (uriJ.value().equals(uriI.value())) {
-                            System.out.println("mitovy eee: " + uriJ.value() + " --- " + uriI.value());
+                        if (urlValueI.equals(urlValueJ)) {
+                            System.out.println("mitovy eee: " + urlValueJ + " --- " + urlValueI);
                             temp.add(mapUtilJ);
                         }
                     }
-                    System.out.println("puted:" + uriI.value() + " temp_size: " + temp.size());
-                    this.mapHash.put(uriI.value(), temp);
+                    System.out.println("puted:" + urlValueI + " temp_size: " + temp.size());
+                    this.mapHash.put(urlValueI, temp);
                 }
                 // for (Method m : controller.getDeclaredMethods()) {
 
